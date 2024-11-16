@@ -2,91 +2,48 @@ package edu.pwr.niduc.reedsolomon;
 
 import edu.pwr.niduc.util.OutOfGaloisFieldException;
 
-import java.util.*;
-
 public class GaloisField64 {
 
-    private static final int m = 6;                                         // m = 6
-    private static final int q = (int) Math.pow(2,m);                       // q = 64
+    private static final int m = 6;
+    private static final int q = (int) Math.pow(2,m);
+    private static final int[] ZT = new int[]{
+            6, 12, 32, 24, 62, 1, 26, 48, 45, 61, 25, 2, 35, 52, 23,
+            33, 47, 27, 56, 59, 42, 50, 15, 4, 11, 7, 18, 41, 60, 46,
+            34, 3, 16, 31, 13, 54, 44, 49, 43, 55, 28, 21, 39, 37, 9,
+            30, 17, 8, 38, 22, 53, 14, 51, 36, 40, 19, 58, 57, 20, 29,
+            10, 5
+    };
 
-    private final Map<Integer, int[]> galoisFieldElements;
+    public static int multiply(int x, int y) {
+        validatePolynomials(x, y);
 
-    public GaloisField64() {
-        this.galoisFieldElements = generateGaloisFieldElements();
+        if (x == 0 || y == 0) {
+            return 0;
+        }
+        return 1 + ((x + y - 2) % (q - 1));
     }
 
-    private Map<Integer, int[]> generateGaloisFieldElements() {
-        Map<Integer, int[]> elements = new HashMap<>();
-        List<Integer> sequence = new ArrayList<>(Arrays.asList(1,0,0));
+    @SuppressWarnings("SuspiciousNameCombination")
+    public static int add(int x, int y) {
+        validatePolynomials(x,y);
 
-        // Generowanie sekwencji
-        for (int i = 0; i < q; i++) {
-            sequence.add(sequence.get(i) ^ sequence.get(i+1));
-        }
-
-        // Odczytanie postaci wektorowej elementów z sekwencji pseudolosowej
-        for (int alpha = 0; alpha < q - 1; alpha++) {
-            List<Integer> subSequence = sequence.subList(alpha, alpha + m);
-            int[] subSequenceArray = subSequence.stream().mapToInt(Integer::intValue).toArray();
-            elements.put(alpha, subSequenceArray);
-        }
-
-        // Dodanie wektora zerowego na ostatniej pozycji możliwej pozycji (GF_SIZE)
-        elements.put(q, new int[m]);
-
-        return elements;
-    }
-
-    public int multiply(int alpha1, int alpha2) {
-        // Sprawdzanie, wielomiany są elementami pola Galois
-        if (alpha1 > q - 2 && alpha1 != q) {
-            throw new OutOfGaloisFieldException("Alpha^" + alpha1 + " is not Galois Field (2" + m + ") element");
-        }
-        if (alpha2 > q - 2 && alpha2 != q) {
-            throw new OutOfGaloisFieldException("Alpha^" + alpha2 + " is not Galois Field (2" + m + ") element");
-        }
-
-        // Mnożenie przez 0
-        if (alpha1 == q || alpha2 == q) return q;
-
-        // Mnożenie postaci multiplikatywnych wielomianów
-        return (alpha1 + alpha2) % (q - 1);
-    }
-
-    public int add(int alpha1, int alpha2) {
-        // TODO: Sprawdzanie, czy wielomiany są elementami pola Galois
-
-        int[] vector1 = galoisFieldElements.get(alpha1);
-        int[] vector2 = galoisFieldElements.get(alpha2);
-
-        int[] result = new int[m];
-
-        // Dodawanie cyfr na odpowiadających pozycjach
-        for (int i = 0; i < Math.max(vector1.length, vector2.length); i++) {
-            if (i > vector1.length - 1) {
-                result[i] = vector2[i];
-            } else if (i > vector2.length - 1) {
-                result[i] = vector1[i];
-            } else {
-                result[i] = vector1[i] ^ vector2[i];
+        if (x == 0 || y == 0) {
+            return x+y;
+        } else if (x == y) {
+            return 0;
+        } else {
+            if (x < y) {
+                int h = x;
+                x = y;
+                y = h;
             }
+            return ((y + ZT[x - y - 1] - 1) % (q - 1)) + 1;
         }
-        return convertToMultiplicative(result);
     }
 
-    private int convertToMultiplicative(int[] vector) {
-        int alpha = -1;
-
-        for (Map.Entry<Integer, int[]> entry : galoisFieldElements.entrySet()) {
-            if (Arrays.equals(entry.getValue(), vector)) {
-                alpha = entry.getKey();
-                break;
-            }
+    private static void validatePolynomials(int x, int y) {
+        if ((x < 0 || x > q-1) || (y < 0 || y > q-1)) {
+            throw new OutOfGaloisFieldException("One of the polynomials in not Galois Field element");
         }
-
-        if (alpha == -1) {
-            throw new RuntimeException("Cannot find alpha");
-        }
-        return alpha;
     }
 }
