@@ -1,14 +1,13 @@
 package edu.pwr.niduc.reedsolomon;
 
-import java.util.Arrays;
+import edu.pwr.niduc.util.InvalidCorrectionValueException;
 import static edu.pwr.niduc.reedsolomon.GaloisField64.multiplyPolynomials;
 
 public class GeneratingPolynomial {
 
     public static int [] generatePolynomial(int t) {
         if (2*t < 1) {
-            // TODO: InvalidCorrectionValueException
-            return null;
+            throw new InvalidCorrectionValueException("Invalid correction value");
         }
 
         int[] generatingPolynomial = new int[]{2,1};        // g(x) = x + alfa
