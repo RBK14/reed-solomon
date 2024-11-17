@@ -2,6 +2,8 @@ package edu.pwr.niduc.reedsolomon;
 
 import edu.pwr.niduc.util.OutOfGaloisFieldException;
 
+import java.util.Arrays;
+
 public class GaloisField64 {
 
     private static final int m = 6;
@@ -14,8 +16,24 @@ public class GaloisField64 {
             10, 5
     };
 
-    public static int multiply(int x, int y) {
-        validatePolynomials(x, y);
+    public static int[] multiplyPolynomials(int[] poly1, int[] poly2) {
+        if (Arrays.equals(poly1, new int[poly1.length]) || Arrays.equals(poly2, new int[poly2.length])) {
+            return new int[1];
+        }
+
+        int[] result = new int[poly1.length + poly2.length - 1];
+
+        for (int i = 0; i < poly1.length; i++) {
+            for (int j = 0; j < poly2.length; j++) {
+                result[i + j] = addAlpha(result[i+j], multiplyAlpha(poly1[i], poly2[j]));
+            }
+        }
+
+        return result;
+    }
+
+    private static int multiplyAlpha(int x, int y) {
+        validateElements(x, y);
 
         if (x == 0 || y == 0) {
             return 0;
@@ -23,9 +41,24 @@ public class GaloisField64 {
         return 1 + ((x + y - 2) % (q - 1));
     }
 
+    public static int[] addPolynomials(int[] poly1, int[] poly2) {
+        int[] result = new int[Math.max(poly1.length, poly2.length)];
+
+        for (int i = 0; i < result.length; i++) {
+            if (poly1.length - 1 < i) {
+                result[i] = poly2[i];
+            } else if (poly2.length - 1 < i) {
+                result[i] = poly1[i];
+            } else {
+                result[i] = addAlpha(poly1[i], poly2[i]);
+            }
+        }
+        return result;
+    }
+
     @SuppressWarnings("SuspiciousNameCombination")
-    public static int add(int x, int y) {
-        validatePolynomials(x,y);
+    private static int addAlpha(int x, int y) {
+        validateElements(x,y);
 
         if (x == 0 || y == 0) {
             return x+y;
@@ -41,9 +74,9 @@ public class GaloisField64 {
         }
     }
 
-    private static void validatePolynomials(int x, int y) {
+    private static void validateElements(int x, int y) {
         if ((x < 0 || x > q-1) || (y < 0 || y > q-1)) {
-            throw new OutOfGaloisFieldException("One of the polynomials in not Galois Field element");
+            throw new OutOfGaloisFieldException("One of the elements in not Galois Field element");
         }
     }
 }
