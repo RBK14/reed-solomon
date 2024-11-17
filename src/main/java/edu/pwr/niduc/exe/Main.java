@@ -14,7 +14,8 @@ public class Main {
                 39, 36, 34
         };
 
+        RSEncoder rsEncoder = new RSEncoder(10);
 
-        System.out.println(Arrays.toString(Arrays.stream(RSEncoder.encode_message(message, 10)).toArray()));
+        System.out.println(Arrays.toString(Arrays.stream(rsEncoder.encode_message(message)).toArray()));
     }
 }
