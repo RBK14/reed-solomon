@@ -17,7 +17,7 @@ public class RSEncoder {
         this.m = m;
         this.t = t;
         this.galoisField = new GaloisField(m);
-        this.generatingPolynomial = new GeneratingPolynomial(m);
+        this.generatingPolynomial = new GeneratingPolynomial(m,t);
     }
 
     public int[] encodeMessage(int[] messagePolynomial) {
@@ -26,7 +26,7 @@ public class RSEncoder {
         }
 
         // Generowanie wielomianu generującego
-        int[] generatingPolynomial = this.generatingPolynomial.generatePolynomial(t);
+        int[] generatingPolynomial = this.generatingPolynomial.generatePolynomial();
 
         // Obliczanie n-k
         int n = messagePolynomial.length + 2 * t; // n = k + r (r = 2t)
@@ -44,7 +44,7 @@ public class RSEncoder {
         return mergeArraysUsingStreams(messagePolynomial, remainder);
     }
 
-    public int[] convertMessageToPolynomial(int message) {
+    public int[] convertMessageToBinary(int message) {
         // Obliczanie minimalnej liczby bitów potrzebnych do reprezentacji wiadomości
         int bitLength = Integer.toBinaryString(message).length();
         validateMessageLength(bitLength);
@@ -57,19 +57,10 @@ public class RSEncoder {
         for (int i = 0; i < bitLength; i++) {
             binaryArray[i] = (message >> i) & 1;
         }
-
-        // Zamiana reprezentacji bitowej wiadomości na wielomian o współczynnikach alfa
-        int[] polynomial = new int[bitLength / m];
-        for (int i = 0; i < polynomial.length; i++) {
-            int k = m*i;
-            int[] subArray = Arrays.copyOfRange(binaryArray, k, k+m);
-            polynomial[i] = galoisField.convertToMultiplicative(subArray);
-        }
-
-        return polynomial;
+        return binaryArray;
     }
 
-    public int[] convertMessageToPolynomial(String message) {
+    public int[] convertMessageToBinary(String message) {
         // Przekształcenie wiadomości na binarną reprezentację całkowitą
         StringBuilder binaryString = new StringBuilder();
         for (char c : message.toCharArray()) {
@@ -89,15 +80,16 @@ public class RSEncoder {
         for (int i = 0; i < binaryString.length(); i++) {
             binaryArray[i] = binaryString.charAt(i) - '0'; // Konwersja char ('0' lub '1') na int
         }
+        return binaryArray;
+    }
 
-        // Zamiana reprezentacji bitowej wiadomości na wielomian o współczynnikach alfa
-        int[] polynomial = new int[bitLength / m];
+    public int[] convertBinaryToPolynomial(int[] messageBinary) {
+        int[] polynomial = new int[messageBinary.length / m];
         for (int i = 0; i < polynomial.length; i++) {
             int k = m * i;
-            int[] subArray = Arrays.copyOfRange(binaryArray, k, k + m);
+            int[] subArray = Arrays.copyOfRange(messageBinary, k, k + m);
             polynomial[i] = galoisField.convertToMultiplicative(subArray);
         }
-
         return polynomial;
     }
 

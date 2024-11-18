@@ -4,13 +4,15 @@ import edu.pwr.niduc.util.InvalidCorrectionValueException;
 
 public class GeneratingPolynomial {
 
+    private final int t;
     private final GaloisField galoisField;
 
-    public GeneratingPolynomial(int m) {
+    public GeneratingPolynomial(int m, int t) {
+        this.t = t;
         this.galoisField = new GaloisField(m);
     }
 
-    public int [] generatePolynomial(int t) {
+    public int [] generatePolynomial() {
         if (2*t < 1) {
             throw new InvalidCorrectionValueException("Invalid correction value");
         }
