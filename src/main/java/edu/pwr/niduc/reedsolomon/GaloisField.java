@@ -4,13 +4,15 @@
 
     import java.util.*;
 
-    public class GaloisField64 {
+    public class GaloisField {
 
-        private static final int m = 6;
-        private static final int q = (int) Math.pow(2,m);
+        private final int m;
+        private final int q;
         private final Map<Integer, int[]> galoisFieldElements;
 
-        public GaloisField64() {
+        public GaloisField(int m) {
+            this.m = m;
+            this.q = (int) Math.pow(2,m);
             this.galoisFieldElements = generateGaloisFieldElements();
         }
 
@@ -109,7 +111,7 @@
             return convertToMultiplicative(result);
         }
 
-        private static int divideAlpha(int alpha1, int alpha2) {
+        private int divideAlpha(int alpha1, int alpha2) {
             validateElements(alpha1, alpha2);
 
             if (alpha2 == 0) {
@@ -155,7 +157,7 @@
             return elements;
         }
 
-        private static int getDegree(int[] polynomial) {
+        private int getDegree(int[] polynomial) {
             for (int i = polynomial.length - 1; i >= 0; i--) {
                 if (polynomial[i] != 0) {
                     return i;
@@ -164,18 +166,14 @@
             return 0;
         }
 
-        private static int[] trimZeros(int[] polynomial) {
+        private int[] trimZeros(int[] polynomial) {
             int degree = getDegree(polynomial);
             return Arrays.copyOf(polynomial, degree + 1);
         }
 
-        private static void validateElements(int alpha1, int alpha2) {
+        private void validateElements(int alpha1, int alpha2) {
             if ((alpha1 < 0 || alpha1 > q-1) || (alpha2 < 0 || alpha2 > q-1)) {
                 throw new OutOfGaloisFieldException("One of the elements in not Galois Field element");
             }
-        }
-
-        public static void main(String[] args) {
-            GaloisField64 gf = new GaloisField64();
         }
     }

@@ -4,10 +4,10 @@ import edu.pwr.niduc.util.InvalidCorrectionValueException;
 
 public class GeneratingPolynomial {
 
-    private final GaloisField64 galoisField64;
+    private final GaloisField galoisField;
 
-    public GeneratingPolynomial() {
-        this.galoisField64 = new GaloisField64();
+    public GeneratingPolynomial(int m) {
+        this.galoisField = new GaloisField(m);
     }
 
     public int [] generatePolynomial(int t) {
@@ -21,7 +21,7 @@ public class GeneratingPolynomial {
         // Mnożenie przez kolejne pierwiastki wielomianu generującego aż do alfa^2t
         for (int i = 3; i <= 2*t + 1; i++){
             int[] root = new int[]{i,1};
-            generatingPolynomial = galoisField64.multiplyPolynomials(generatingPolynomial, root);
+            generatingPolynomial = galoisField.multiplyPolynomials(generatingPolynomial, root);
         }
         return generatingPolynomial;
     }

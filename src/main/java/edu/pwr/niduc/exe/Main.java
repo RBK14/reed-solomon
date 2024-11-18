@@ -6,16 +6,14 @@ import java.util.Arrays;
 
 public class Main {
     public static void main(String[] args) {
-        int[] message = {
-                3, 15, 27, 10, 19, 5, 22, 7, 31, 12,
-                45, 2, 14, 28, 8, 35, 6, 18, 23, 9,
-                50, 4, 16, 25, 13, 33, 11, 20, 37, 1,
-                29, 21, 17, 26, 30, 38, 24, 32, 40, 41,
-                39, 36, 34
-        };
 
-        RSEncoder rsEncoder = new RSEncoder(10);
+        // Parametry kodu RS(63,43)
+        int m = 6;
+        int t = 10;
 
-        System.out.println(Arrays.toString(Arrays.stream(rsEncoder.encode_message(message)).toArray()));
+        RSEncoder rsEncoder = new RSEncoder(m,t);
+        int[] message = rsEncoder.convertMessageToPolynomial("Hello World!");
+        System.out.println(Arrays.toString(message));
+        System.out.println(Arrays.toString(Arrays.stream(rsEncoder.encodeMessage(message)).toArray()));
     }
 }
