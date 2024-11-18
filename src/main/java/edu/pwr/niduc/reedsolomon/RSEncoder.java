@@ -85,6 +85,8 @@ public class RSEncoder {
 
     public int[] convertBinaryToPolynomial(int[] messageBinary) {
         int[] polynomial = new int[messageBinary.length / m];
+
+        // Zamiana ciągu m znaków binarnych na postać multiplikatywna alfa
         for (int i = 0; i < polynomial.length; i++) {
             int k = m * i;
             int[] subArray = Arrays.copyOfRange(messageBinary, k, k + m);

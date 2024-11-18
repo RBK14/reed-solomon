@@ -85,20 +85,24 @@ public class GaloisField {
     private int multiplyAlpha(int alpha1, int alpha2) {
         validateElements(alpha1, alpha2);
 
+        // Mnożenie przez zero zwraca zero
         if (alpha1 == 0 || alpha2 == 0) {
             return 0;
         }
+
         return 1 + ((alpha1 + alpha2 - 2) % (q - 1));
     }
 
     private int addAlpha(int alpha1, int alpha2) {
         validateElements(alpha1, alpha2);
 
-        int[] result = new int[m];
-
+        // Zamiana elementu alfa na odpowiednik w postaci wektorowej
         int[] vector1 = galoisFieldElements.get(alpha1);
         int[] vector2 = galoisFieldElements.get(alpha2);
 
+        int[] result = new int[m];
+
+        // Dodawanie wartości na odpowiednich pozycjach
         for (int i = 0; i < Math.max(vector1.length, vector2.length); i++) {
             if (i > vector1.length - 1) {
                 result[i] = vector2[i];
