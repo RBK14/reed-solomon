@@ -35,13 +35,13 @@ public class RSEncoder {
 
         // Przesunięcie wiadomości przez mnożenie przez x^(n-k)
         int[] shiftedMessage = new int[messagePolynomial.length + power];
-        System.arraycopy(messagePolynomial, 0, shiftedMessage, 0, messagePolynomial.length);
+        System.arraycopy(messagePolynomial, 0, shiftedMessage, power, messagePolynomial.length);
 
         // Obliczenie reszty (r(x))
         int[] remainder = galoisField.dividePolynomials(shiftedMessage, generatingPolynomial);
 
         // Połączenie wiadomości z resztą
-        return mergeArraysUsingStreams(messagePolynomial, remainder);
+        return galoisField.addPolynomials(remainder, shiftedMessage);
     }
 
     public int[] convertMessageToBinary(int message) {
