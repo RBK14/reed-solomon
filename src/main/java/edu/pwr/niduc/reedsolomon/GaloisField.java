@@ -46,13 +46,12 @@ public class GaloisField {
         return result;
     }
 
-    public int[] dividePolynomials(int[] dividend, int[] divisor){
-        if (divisor.length == 0 || (divisor.length == 1 && divisor[0] == 0)) {
+    public int[] dividePolynomials(int[] dividend, int[] divisor) {
+        if (divisor == null || divisor.length == 0 || (divisor.length == 1 && divisor[0] == 0)) {
             throw new IllegalArgumentException("Divisor cannot be zero.");
         }
 
         int[] remainder = Arrays.copyOf(dividend, dividend.length);
-
         int divisorDegree = getDegree(divisor);
         int divisorLeadingCoeff = divisor[divisorDegree];
 
@@ -93,7 +92,7 @@ public class GaloisField {
         return 1 + ((alpha1 + alpha2 - 2) % (q - 1));
     }
 
-    private int addAlpha(int alpha1, int alpha2) {
+    public int addAlpha(int alpha1, int alpha2) {
         validateElements(alpha1, alpha2);
 
         // Zamiana elementu alfa na odpowiednik w postaci wektorowej
@@ -180,4 +179,8 @@ public class GaloisField {
             throw new OutOfGaloisFieldException("One of the elements in not Galois Field element");
         }
     }
+
+    //Do dekodera
+
+
 }

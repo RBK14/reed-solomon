@@ -105,4 +105,84 @@ public class RSEncoder {
             throw new MessageTooLongException("Message length must be less than or equal to " + maxLength);
         }
     }
+
+    public int[] simpleDecode(int[] receivedVector) {
+        if (receivedVector == null || receivedVector.length == 0) {
+            throw new IllegalArgumentException("Received vector cannot be null or empty.");
+        }
+
+        int[] correctedVector = reverseArrayWithStream( Arrays.copyOf(receivedVector, receivedVector.length));
+        int n = correctedVector.length;
+        int k = n - 2 * t; // Wyznaczenie długości części informacyjnej
+        int[] generator = reverseArrayWithStream(generatingPolynomial.generatePolynomial());
+
+        for (int i = 0; i <= k; i++) {
+            // Obliczanie syndromu jako reszty z dzielenia
+            int[] syndrome = galoisField.dividePolynomials(correctedVector, generator);
+
+            // Sprawdzenie, czy syndrom jest zerowy (brak błędów)
+            if (isZeroSyndrome(syndrome)) {
+                return correctedVector;
+            }
+
+            // Liczenie wagi syndromu
+            int syndromeWeight = calculateHammingWeight(syndrome);
+
+            if (syndromeWeight <= t) {
+                // Korekcja błędów
+                correctedVector = galoisField.addPolynomials(correctedVector, syndrome);
+
+                // Przywracanie oryginalnej kolejności
+                for (int j = 0; j < i; j++) {
+                    correctedVector = shiftLeft(correctedVector);
+                }
+                return reverseArrayWithStream(correctedVector); // Zwracanie skorygowanego wektora
+            } else {
+                // Obracanie wektora cyklicznie w prawo
+                correctedVector = shiftRight(correctedVector);
+
+                // Sprawdzanie niekorygowalnych błędów
+                if (i == k) {
+                    System.out.println("Błędy niekorygowalne");
+                    return null;
+                }
+            }
+        }
+        return reverseArrayWithStream(correctedVector);
+    }
+
+    private boolean isZeroSyndrome(int[] syndrome) {
+        for (int el : syndrome) {
+            if (el != 0) return false;
+        }
+        return true;
+    }
+
+    private int calculateHammingWeight(int[] vector) {
+        int weight = 0;
+        for (int el : vector) {
+            if (el != 0) weight++;
+        }
+        return weight;
+    }
+
+    private int[] shiftRight(int[] vector) {
+        int[] shifted = new int[vector.length];
+        shifted[0] = vector[vector.length - 1];
+        System.arraycopy(vector, 0, shifted, 1, vector.length - 1);
+        return shifted;
+    }
+
+    private int[] shiftLeft(int[] vector) {
+        int[] shifted = new int[vector.length];
+        System.arraycopy(vector, 1, shifted, 0, vector.length - 1);
+        shifted[vector.length - 1] = vector[0];
+        return shifted;
+    }
+
+    public static int[] reverseArrayWithStream(int[] array) {
+        return IntStream.range(0, array.length)
+                .map(i -> array[array.length - 1 - i])
+                .toArray();
+    }
 }
