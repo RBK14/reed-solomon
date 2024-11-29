@@ -4,18 +4,19 @@ import edu.pwr.niduc.util.InvalidCorrectionValueException;
 import edu.pwr.niduc.util.MessageTooLongException;
 
 import java.util.Arrays;
-import java.util.stream.IntStream;
 
 public class RSEncoder {
 
     private final int m;
     private final int t;
+    private final int q;
     private final GaloisField galoisField;
     private final GeneratingPolynomial generatingPolynomial;
 
     public RSEncoder(int m, int t) {
         this.m = m;
         this.t = t;
+        this.q = (int) Math.pow(2, m);
         this.galoisField = new GaloisField(m);
         this.generatingPolynomial = new GeneratingPolynomial(m,t);
     }
@@ -24,7 +25,7 @@ public class RSEncoder {
         if (t < 1) {
             throw new InvalidCorrectionValueException("Correction value t must be greater or equal to 1");
         }
-        messagePolynomial = padMessageWithZeros(messagePolynomial,43);
+        messagePolynomial = padMessageWithZeros(messagePolynomial);
         System.out.println("Padded message: "+Arrays.toString(messagePolynomial));
 
         // Generowanie wielomianu generującego
@@ -45,8 +46,10 @@ public class RSEncoder {
         // Połączenie wiadomości z resztą
         return galoisField.addPolynomials(remainder, shiftedMessage);
     }
-    private int[] padMessageWithZeros(int[] messagePolynomial, int desiredLength) {
-        // Sprawdzanie, czy długość wiadomości już odpowiada desiredLength
+
+    private int[] padMessageWithZeros(int[] messagePolynomial) {
+        // Sprawdzanie, czy długość wiadomości już odpowiada docelowej długości
+        int desiredLength = (q - 1) - 2 * t;
         if (messagePolynomial.length >= desiredLength) {
             return messagePolynomial; // Jeśli wiadomość jest równa lub dłuższa, zwróć oryginalną
         }

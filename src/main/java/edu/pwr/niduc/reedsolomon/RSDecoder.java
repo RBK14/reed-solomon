@@ -4,25 +4,25 @@ import java.util.Arrays;
 import java.util.stream.IntStream;
 
 public class RSDecoder {
-    private final int m;
     private final int t;
     private final GaloisField galoisField;
     private final GeneratingPolynomial generatingPolynomial;
+
     public RSDecoder(int m, int t){
-        this.m = m;
         this.t = t;
         this.galoisField = new GaloisField(m);
         this.generatingPolynomial = new GeneratingPolynomial(m,t);
     }
-    public int[] simpleDecode(int[] receivedVector) {
-        if (receivedVector == null || receivedVector.length == 0) {
-            throw new IllegalArgumentException("Received vector cannot be null or empty.");
+
+    public int[] simpleDecode(int[] encodedMessage) {
+        if (encodedMessage == null || encodedMessage.length == 0) {
+            throw new IllegalArgumentException("Encoded message cannot be null or empty.");
         }
 
-        int[] correctedVector = reverseArrayWithStream(Arrays.copyOf(receivedVector, receivedVector.length));
+        int[] correctedVector = Arrays.copyOf(encodedMessage, encodedMessage.length);
         int n = correctedVector.length;
         int k = n - 2 * t; // Wyznaczenie długości części informacyjnej
-        int[] generator = reverseArrayWithStream(generatingPolynomial.generatePolynomial());
+        int[] generator = generatingPolynomial.generatePolynomial();
 
         for (int i = 0; i <= k; i++) {
             // Obliczanie syndromu jako reszty z dzielenia
@@ -30,7 +30,7 @@ public class RSDecoder {
 
             // Sprawdzenie, czy syndrom jest zerowy (brak błędów)
             if (isZeroSyndrome(syndrome)) {
-                System.out.println("Brak bledow");
+                System.out.println("No correction needed");
                 return correctedVector;
             }
 
@@ -45,19 +45,23 @@ public class RSDecoder {
                 for (int j = 0; j < i; j++) {
                     correctedVector = shiftLeft(correctedVector);
                 }
-                return reverseArrayWithStream(correctedVector); // Zwracanie skorygowanego wektora
+                return correctedVector; // Zwracanie skorygowanego wektora
             } else {
                 // Obracanie wektora cyklicznie w prawo
                 correctedVector = shiftRight(correctedVector);
 
                 // Sprawdzanie niekorygowalnych błędów
                 if (i == k) {
-                    System.out.println("Błędy niekorygowalne");
-                    return null;
+                    System.out.println("Bledy niekorygowalne");
+                    // Przywracanie oryginalnej kolejności
+                    for (int j = 0; j < i; j++) {
+                        correctedVector = shiftLeft(correctedVector);
+                    }
+                    return correctedVector;
                 }
             }
         }
-        return reverseArrayWithStream(correctedVector);
+        return correctedVector;
     }
 
     private boolean isZeroSyndrome(int[] syndrome) {
