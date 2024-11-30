@@ -26,7 +26,7 @@ public class RSEncoder {
             throw new InvalidCorrectionValueException("Correction value t must be greater or equal to 1");
         }
         messagePolynomial = padMessageWithZeros(messagePolynomial);
-        System.out.println("Padded message: "+Arrays.toString(messagePolynomial));
+        System.out.println("Padded message: " + Arrays.toString(messagePolynomial));
 
         // Generowanie wielomianu generującego
         int[] generatingPolynomial = this.generatingPolynomial.generatePolynomial();
