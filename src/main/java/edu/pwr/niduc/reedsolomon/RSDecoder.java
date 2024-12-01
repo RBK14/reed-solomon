@@ -1,17 +1,16 @@
 package edu.pwr.niduc.reedsolomon;
 
 import java.util.Arrays;
-import java.util.stream.IntStream;
 
 public class RSDecoder {
     private final int t;
     private final GaloisField galoisField;
     private final GeneratingPolynomial generatingPolynomial;
 
-    public RSDecoder(int m, int t){
+    public RSDecoder(int m, int t) {
         this.t = t;
         this.galoisField = new GaloisField(m);
-        this.generatingPolynomial = new GeneratingPolynomial(m,t);
+        this.generatingPolynomial = new GeneratingPolynomial(m, t);
     }
 
     public int[] simpleDecode(int[] encodedMessage) {
@@ -21,62 +20,71 @@ public class RSDecoder {
 
         int[] correctedVector = Arrays.copyOf(encodedMessage, encodedMessage.length);
         int n = correctedVector.length;
-        int k = n - 2 * t; // Wyznaczenie długości części informacyjnej
+        int k = n - 2 * t; // Długość części informacyjnej
         int[] generator = generatingPolynomial.generatePolynomial();
 
-        for (int i = 0; i <= k; i++) {
-            // Obliczanie syndromu jako reszty z dzielenia
+        for (int rotation = 0; rotation < n; rotation++) {
+            // Oblicz syndrom
             int[] syndrome = galoisField.dividePolynomials(correctedVector, generator);
 
-            // Sprawdzenie, czy syndrom jest zerowy (brak błędów)
+            // Jeśli syndrom zerowy, nie ma błędów
             if (isZeroSyndrome(syndrome)) {
-                System.out.println("No correction needed");
+                log("No correction needed");
                 return correctedVector;
             }
 
-            // Liczenie wagi syndromu
+            // Liczba błędów
             int syndromeWeight = calculateHammingWeight(syndrome);
 
             if (syndromeWeight <= t) {
-                // Korekcja błędów
-                correctedVector = galoisField.addPolynomials(correctedVector, syndrome);
-
-                // Przywracanie oryginalnej kolejności
-                for (int j = 0; j < i; j++) {
-                    correctedVector = shiftLeft(correctedVector);
-                }
-                return correctedVector; // Zwracanie skorygowanego wektora
-            } else {
-                // Obracanie wektora cyklicznie w prawo
-                correctedVector = shiftRight(correctedVector);
-
-                // Sprawdzanie niekorygowalnych błędów
-                if (i == k) {
-                    System.out.println("Bledy niekorygowalne");
-                    // Przywracanie oryginalnej kolejności
-                    for (int j = 0; j < i; j++) {
-                        correctedVector = shiftLeft(correctedVector);
-                    }
-                    return correctedVector;
-                }
+                log("Correcting errors...");
+                correctedVector = correctErrors(correctedVector, syndrome, rotation);
+                return correctedVector;
             }
+
+            // Obracaj cyklicznie w prawo
+            correctedVector = shiftRight(correctedVector);
         }
+
+        log("Uncorrectable errors detected");
         return correctedVector;
     }
 
-    private boolean isZeroSyndrome(int[] syndrome) {
-        for (int el : syndrome) {
-            if (el != 0) return false;
+    public boolean testCyclicProperty(int[] codeword) {
+        int n = codeword.length;
+        int[] generator = generatingPolynomial.generatePolynomial();
+
+        for (int i = 0; i < n; i++) {
+            int[] syndrome = galoisField.dividePolynomials(codeword, generator);
+            if (!isZeroSyndrome(syndrome)) {
+                log("Cyclic property failed for rotation " + i);
+                return false;
+            }
+            codeword = shiftRight(codeword);
         }
+
+        log("Cyclic property verified for all rotations");
         return true;
     }
 
-    private int calculateHammingWeight(int[] vector) {
-        int weight = 0;
-        for (int el : vector) {
-            if (el != 0) weight++;
+    public int[] correctErrors(int[] vector, int[] syndrome, int rotations) {
+        // Popraw błędy za pomocą syndromu
+        vector = galoisField.addPolynomials(vector, syndrome);
+
+        // Przywróć oryginalną kolejność
+        for (int i = 0; i < rotations; i++) {
+            vector = shiftLeft(vector);
         }
-        return weight;
+
+        return vector;
+    }
+
+    private boolean isZeroSyndrome(int[] syndrome) {
+        return Arrays.stream(syndrome).allMatch(el -> el == 0);
+    }
+
+    private int calculateHammingWeight(int[] vector) {
+        return (int) Arrays.stream(vector).filter(el -> el != 0).count();
     }
 
     private int[] shiftRight(int[] vector) {
@@ -93,10 +101,7 @@ public class RSDecoder {
         return shifted;
     }
 
-    public static int[] reverseArrayWithStream(int[] array) {
-        return IntStream.range(0, array.length)
-                .map(i -> array[array.length - 1 - i])
-                .toArray();
+    private void log(String message) {
+        System.out.println("[RSDecoder] " + message);
     }
-
 }
