@@ -15,7 +15,7 @@ public class RSDecoder {
 
     public int[] simpleDecode(int[] encodedMessage) {
         if (encodedMessage == null || encodedMessage.length == 0) {
-            throw new IllegalArgumentException("Encoded message cannot be null or empty.");
+            throw new IllegalArgumentException("Encoded message cannot be null or empty");
         }
 
         int[] correctedVector = Arrays.copyOf(encodedMessage, encodedMessage.length);

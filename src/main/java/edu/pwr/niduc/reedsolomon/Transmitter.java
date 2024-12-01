@@ -29,6 +29,8 @@ public class Transmitter {
             }
         }
 
+        log("Simulating random errors...");
+
         int[] outputMessage = Arrays.copyOf(encodedMessage, encodedMessage.length);
         for (Integer position : positionsToSwap) {
             int error;
@@ -50,6 +52,8 @@ public class Transmitter {
         int lastPossiblePosition = encodedMessage.length - burstLength - 1;
         int burstStartingPosition = rand.nextInt(lastPossiblePosition);
 
+        log("Simulating burst errors...");
+
         int[] outputMessage = Arrays.copyOf(encodedMessage, encodedMessage.length);
         for (int i = 0; i < burstLength; i++) {
             outputMessage[burstStartingPosition] = rand.nextInt(q-1);
@@ -57,5 +61,9 @@ public class Transmitter {
         }
 
         return outputMessage;
+    }
+
+    private void log(String message) {
+        System.out.println("[Transmitter] " + message);
     }
 }
