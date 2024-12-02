@@ -5,6 +5,7 @@ import edu.pwr.niduc.reedsolomon.*;
 import java.util.Arrays;
 
 public class Main {
+
     public static void main(String[] args) {
 
         // Parametry kodu RS(63,43)

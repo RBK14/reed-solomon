@@ -81,6 +81,10 @@ public class GaloisField {
         return alpha;
     }
 
+    public int[] convertToVector(int alpha) {
+        return galoisFieldElements.get(alpha);
+    }
+
     private int multiplyAlpha(int alpha1, int alpha2) {
         validateElements(alpha1, alpha2);
 
@@ -179,8 +183,4 @@ public class GaloisField {
             throw new OutOfGaloisFieldException("One of the elements in not Galois Field element");
         }
     }
-
-    //Do dekodera
-
-
 }
