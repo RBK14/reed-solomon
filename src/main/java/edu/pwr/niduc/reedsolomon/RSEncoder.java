@@ -22,9 +22,8 @@ public class RSEncoder {
         if (t < 1) {
             throw new InvalidCorrectionValueException("Correction value t must be greater or equal to 1");
         }
+
         messagePolynomial = padMessageWithZeros(messagePolynomial);
-        log("Padding message with zeros...");
-        System.out.println("Padded message: " + Arrays.toString(messagePolynomial));
 
         // Generowanie wielomianu generującego
         int[] generatingPolynomial = this.generatingPolynomial.generatePolynomial();
@@ -53,6 +52,8 @@ public class RSEncoder {
         if (messagePolynomial.length >= desiredLength) {
             return messagePolynomial; // Jeśli wiadomość jest równa lub dłuższa, zwróć oryginalną
         }
+
+        log("Padding message with zeros...");
 
         // Wyliczenie liczby zer do dodania
         int zerosToAdd = desiredLength - messagePolynomial.length;
