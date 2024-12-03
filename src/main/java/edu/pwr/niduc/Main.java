@@ -1,6 +1,7 @@
 package edu.pwr.niduc;
 
 import edu.pwr.niduc.reedsolomon.*;
+import edu.pwr.niduc.util.Transmitter;
 
 import java.util.Arrays;
 
@@ -20,7 +21,8 @@ public class Main {
         System.out.println("Input message: " + Arrays.toString(messagePolynomial));
         int [] encodeMessage = rsEncoder.encodeMessage(messagePolynomial);
         System.out.println("Encoded message: "+ Arrays.toString(encodeMessage));
-        int[] corruptedMessage = transmitter.simulateBurstErrors(encodeMessage, 10);
+        int[] corruptedMessage = transmitter.simulateRandomErrors(encodeMessage, 2);
+        // int[] corruptedMessage = new int[]{34, 37, 4, 59, 53, 8, 22, 12, 37, 30, 52, 6, 51, 32, 56, 60, 14, 5, 38, 32, 0, 0, 0, 0, 0, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42};
         System.out.println("Corrupted message: "+ Arrays.toString(corruptedMessage));
         int[] decodedMessage = rsDecoder.simpleDecode(corruptedMessage);
         System.out.println("Decoded message: "+ Arrays.toString(decodedMessage));

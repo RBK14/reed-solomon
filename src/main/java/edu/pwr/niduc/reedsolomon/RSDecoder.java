@@ -20,7 +20,6 @@ public class RSDecoder {
 
         int[] correctedVector = Arrays.copyOf(encodedMessage, encodedMessage.length);
         int n = correctedVector.length;
-        int k = n - 2 * t; // Długość części informacyjnej
         int[] generator = generatingPolynomial.generatePolynomial();
 
         for (int rotation = 0; rotation < n; rotation++) {

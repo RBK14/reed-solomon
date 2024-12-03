@@ -1,4 +1,6 @@
-package edu.pwr.niduc.reedsolomon;
+package edu.pwr.niduc.util;
+
+import edu.pwr.niduc.reedsolomon.GaloisField;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,7 +41,7 @@ public class Transmitter {
         for (Integer position : positionsToSwap) {
             int error;
             do {
-                error = rand.nextInt(q-1);
+                error = rand.nextInt(q);
             } while (error == outputMessage[position]);
 
             outputMessage[position] = error;
@@ -48,7 +50,27 @@ public class Transmitter {
         return outputMessage;
     }
 
-    public int[] simulateBurstErrors(int[] encodedMessage, int burstLength) {
+    public int[] simulateSymbolBurstErrors(int[] encodedMessage, int burstLength) {
+        if (burstLength > encodedMessage.length) {
+            throw new IllegalArgumentException("Number of errors is greater than number of encoded bytes");
+        }
+
+        int lastPossiblePosition = encodedMessage.length - burstLength - 1;
+        int burstStartPosition = rand.nextInt(lastPossiblePosition);
+
+        log("Simulating burst errors...");
+
+        int[] outputMessage = Arrays.copyOf(encodedMessage, encodedMessage.length);
+
+        for(int i = 0; i < burstLength; i++) {
+            outputMessage[burstStartPosition] = rand.nextInt(q);
+            burstStartPosition++;
+        }
+
+        return outputMessage;
+    }
+
+    public int[] simulateByteBurstErrors(int[] encodedMessage, int burstLength) {
         if (burstLength > encodedMessage.length * m) {
             throw new IllegalArgumentException("Number of errors is greater than number of encoded bytes");
         }
@@ -67,11 +89,7 @@ public class Transmitter {
         log("Simulating burst errors...");
 
         for (int i = 0; i < burstLength; i++) {
-            if (binaryMessage[burstStartingPosition] == 1) {
-                binaryMessage[burstStartingPosition] = 0;
-            } else {
-                binaryMessage[burstStartingPosition] = 1;
-            }
+            binaryMessage[burstStartingPosition] ^= 1;
             burstStartingPosition++;
         }
 
