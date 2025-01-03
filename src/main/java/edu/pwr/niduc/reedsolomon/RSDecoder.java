@@ -25,7 +25,6 @@ public class RSDecoder {
         for (int rotation = 0; rotation < n; rotation++) {
             // Oblicz syndrom
             int[] syndrome = galoisField.dividePolynomials(correctedVector, generator);
-
             // Jeśli syndrom zerowy, nie ma błędów
             if (isZeroSyndrome(syndrome)) {
                 log("No correction needed");
