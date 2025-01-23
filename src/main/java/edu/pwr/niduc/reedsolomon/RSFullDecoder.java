@@ -12,154 +12,160 @@ public class RSFullDecoder {
     }
 
     public int[] decode(int[] received) {
+        validateInput(received);
+
         int[] syndromes = calculateSyndromes(received);
-        System.out.println("Syndromes: " + Arrays.toString(syndromes));
+        log("Syndromes: " + Arrays.toString(syndromes));
 
         if (isAllZero(syndromes)) {
-            System.out.println("No correction needed");
-            return received; // No errors
+            log("No correction needed");
+            return received;
         }
 
         int[][] euclideanResult = euclideanAlgorithm(syndromes);
-        int[] errorLocatorPoly = euclideanResult[1]; // Lambda(x)
-        int[] omega = euclideanResult[0]; // Omega(x)
+        int[] errorLocatorPoly = euclideanResult[1];
+        int[] omega = euclideanResult[0];
 
-        System.out.println("Error Locator Polynomial: " + Arrays.toString(errorLocatorPoly));
-        System.out.println("Omega: " + Arrays.toString(omega));
 
         int[] errorPositions = findErrorPositions(errorLocatorPoly);
-        System.out.println("Error positions: " + Arrays.toString(errorPositions));
 
         if (errorPositions.length == 0) {
-            System.out.println("No errors found (unexpected)");
-            return received; // Error positions not found
+            log("No errors found (unexpected)");
+            return received;
         }
 
         int[] errorMagnitudes = findErrorMagnitudes(omega, errorLocatorPoly, errorPositions);
-        System.out.println("Error magnitudes: " + Arrays.toString(errorMagnitudes));
 
         return correctErrors(received, errorPositions, errorMagnitudes);
     }
 
+    private void validateInput(int[] received) {
+        if (received == null || received.length == 0) {
+            throw new IllegalArgumentException("Received message cannot be null or empty");
+        }
+    }
 
     private int[] calculateSyndromes(int[] received) {
         int[] syndromes = new int[2 * t];
-
         for (int i = 0; i < 2 * t; i++) {
-            int alphaPower = i + 1;
             int evaluation = 0;
+            int alphaPower = i + 1;
 
             for (int j = 0; j < received.length; j++) {
                 int powResult = gf.pow(gf.alpha, alphaPower * j);
-                int term = gf.multiplyAlpha(received[j], powResult);
-                evaluation = gf.addAlpha(evaluation, term);
+                evaluation = gf.addAlpha(evaluation, gf.multiplyAlpha(received[j], powResult));
             }
             syndromes[i] = evaluation;
         }
-
-        System.out.println("Syndromes" + Arrays.toString(syndromes));
         return syndromes;
     }
 
     private boolean isAllZero(int[] array) {
         for (int value : array) {
-            if (value != 0) {
-                return false;
-            }
+            if (value != 0) return false;
         }
         return true;
     }
 
     private int[][] euclideanAlgorithm(int[] syndromes) {
-        int[] r0 = new int[2 * t+2];
-        r0[2*t+1] = 1; // x^(2t)
-        System.out.println(Arrays.toString(r0));
-        int[] r1 = syndromes;
+        // r0 = x^(2t)
+        int[] r0 = new int[2 * t + 1];
+        r0[2 * t] = 1;
+
+        // r1 = syndromy (S(x))
+        int[] r1 = Arrays.copyOf(syndromes, syndromes.length);
+
+        // sigma0 = 1
         int[] sigma0 = {1};
+        // sigma1 = 0
         int[] sigma1 = {0};
 
-        while (degree(r1) > t) {
-            int[] quotient = gf.getQuotient(r0,r1);
-            int[] remainder = gf.dividePolynomials(r0,r1);
-
+        while (degree(r1) >= t) {
+            int[] quotient = gf.getQuotient(r0, r1);
+            int[] remainder = gf.addPolynomials(r0,gf.multiplyPolynomials(quotient,r1));
             int[] sigmaNext = gf.addPolynomials(sigma0, gf.multiplyPolynomials(quotient, sigma1));
 
             r0 = r1;
             r1 = remainder;
             sigma0 = sigma1;
             sigma1 = sigmaNext;
-            System.out.println("r0: " + Arrays.toString(r0));
-            System.out.println("r1: " + Arrays.toString(r1));
-            System.out.println("quotient: " + Arrays.toString(quotient));
-            System.out.println("remainder: " + Arrays.toString(remainder));
-            System.out.println("sigmaNext: " + Arrays.toString(sigmaNext));
-
         }
 
-        return new int[][] {r1, sigma1}; // Omega(x) and Lambda(x)
+        // Zwracamy [ reszta, lokalizator ], czyli [omega, sigma]
+        return new int[][] {r1, sigma1};
     }
 
     private int degree(int[] poly) {
         for (int i = poly.length - 1; i >= 0; i--) {
-            if (poly[i] != 0) {
-                return i;
-            }
+            if (poly[i] != 0) return i;
         }
         return -1;
     }
 
     private int[] findErrorPositions(int[] errorLocatorPoly) {
-        List<Integer> errorPositions = new ArrayList<>();
+        int n =64;
 
-        for (int i = 0; i < gf.q; i++) {
-            int value = 0;
-            for (int j = 0; j < errorLocatorPoly.length; j++) {
-                value = gf.addAlpha(value, gf.multiplyAlpha(errorLocatorPoly[j], gf.pow(gf.alpha, i * j)));
-            }
+        List<Integer> errorPositions = new ArrayList<>();
+        // Sprawdzamy i = 0..n-1
+        for (int i = 0; i < n; i++) {
+            // Evaluate sigma( alpha^i )
+            int Xi = gf.pow(gf.alpha, i);
+            int value = gf.evaluatePolynomial(errorLocatorPoly, Xi);
+
             if (value == 0) {
-                errorPositions.add(gf.q - 1 - i);
+                // Błąd w pozycji (n - 1 - i)
+                errorPositions.add(n - 1 - i);
             }
+        }
+
+        // Walidacja
+        if (errorPositions.size() > t) {
+            throw new RuntimeException("Found more errors than can be corrected!");
         }
 
         return errorPositions.stream().mapToInt(Integer::intValue).toArray();
     }
 
-    private int[] findErrorMagnitudes(int[] omega, int[] errorLocatorPoly, int[] errorPositions) {
+    private int[] findErrorMagnitudes(int[] omega,
+                                      int[] errorLocatorPoly,
+                                      int[] errorPositions) {
         int[] errorMagnitudes = new int[errorPositions.length];
-
         for (int i = 0; i < errorPositions.length; i++) {
             int xi = gf.pow(gf.alpha, errorPositions[i]);
+
             int numerator = gf.evaluatePolynomial(omega, xi);
             int denominator = gf.evaluatePolynomialDerivative(errorLocatorPoly, xi);
 
             if (denominator == 0) {
-                throw new ArithmeticException("Division by zero in error magnitude calculation");
+                throw new ArithmeticException(
+                        "Division by zero in error magnitude calculation"
+                );
             }
-
             errorMagnitudes[i] = gf.divideAlpha(numerator, denominator);
         }
-
         return errorMagnitudes;
     }
 
-    private int[] correctErrors(int[] received, int[] errorPositions, int[] errorMagnitudes) {
+    private int[] correctErrors(int[] received,
+                                int[] errorPositions,
+                                int[] errorMagnitudes) {
         int[] corrected = Arrays.copyOf(received, received.length);
+
         for (int i = 0; i < errorPositions.length; i++) {
-            corrected[errorPositions[i]] = gf.addAlpha(corrected[errorPositions[i]], errorMagnitudes[i]);
+            int index = errorPositions[i];
+            if (index < 0 || index >= received.length) {
+                throw new IllegalArgumentException(
+                        "Invalid error index: " + index
+                );
+            }
+            corrected[index] = gf.addAlpha(corrected[index], errorMagnitudes[i]);
+            log("Corrected position: " + index + ", new value: " + corrected[index]);
         }
+
         return corrected;
     }
-    public int[] reverse(int[] array) {
-        int start = 0;
-        int end = array.length - 1;
 
-        while (start < end) {
-            int temp = array[start];  // Tymczasowo zapisz wartość z początku
-            array[start] = array[end];  // Zamień wartość z końca na początek
-            array[end] = temp;  // Zapisz tymczasową wartość na końcu
-            start++;  // Przesuń wskaźnik początku w prawo
-            end--;  // Przesuń wskaźnik końca w lewo
-        }
-        return array;
+    private void log(String message) {
+        System.out.println(message);
     }
 }

@@ -235,32 +235,7 @@ public class GaloisField {
             throw new OutOfGaloisFieldException("Alpha value is out of range.");
         }
     }
-    public int[] multiplyPolynomialByMonomial(int[] polynomial, int degree) {
-        if (polynomial == null || polynomial.length == 0) {
-            return new int[1]; // Wynik mnożenia przez zerowy wielomian to wielomian zerowy
-        }
 
-        int[] result = new int[polynomial.length + degree];
-
-        for (int i = 0; i < polynomial.length; i++) {
-            result[i + degree] = polynomial[i];
-        }
-
-        return result;
-    }
-    public int[] multiplyPolynomialByScalar(int[] polynomial, int scalar) {
-        if (scalar == 0) {
-            // Jeśli mnożymy przez 0, wynik to sam wielomian zerowy
-            return new int[polynomial.length];
-        }
-
-        int[] result = new int[polynomial.length];
-        for (int i = 0; i < polynomial.length; i++) {
-            result[i] = multiplyAlpha(polynomial[i], scalar);
-        }
-
-        return result;
-    }
 
     // Evaluates a polynomial at a given point in the Galois field
     public int evaluatePolynomial(int[] polynomial, int x) {
@@ -319,5 +294,11 @@ public class GaloisField {
         return quotient;
     }
 
+    public static void main(String[] args) {
+        GaloisField gf = new GaloisField(6);
+        int[] divided = gf.getQuotient(new int[] {1,1,1,0,1,1}, new int[]{1,1,0,1,0,1});
+        int[] remainder = gf.dividePolynomials(new int[] {1,1,1,0,1,1}, new int[]{1,1,0,1,0,1});
+        System.out.println("Quotient: "+Arrays.toString(divided)+", Remainder: "+ Arrays.toString(remainder));
+    }
 
 }

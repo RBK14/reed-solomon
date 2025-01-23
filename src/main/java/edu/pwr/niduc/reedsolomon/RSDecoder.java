@@ -48,22 +48,6 @@ public class RSDecoder {
         return correctedVector;
     }
 
-    public boolean testCyclicProperty(int[] codeword) {
-        int n = codeword.length;
-        int[] generator = generatingPolynomial.generatePolynomial();
-
-        for (int i = 0; i < n; i++) {
-            int[] syndrome = galoisField.dividePolynomials(codeword, generator);
-            if (!isZeroSyndrome(syndrome)) {
-                log("Cyclic property failed for rotation " + i);
-                return false;
-            }
-            codeword = shiftRight(codeword);
-        }
-
-        log("Cyclic property verified for all rotations");
-        return true;
-    }
 
     public int[] correctErrors(int[] vector, int[] syndrome, int rotations) {
         // Popraw błędy za pomocą syndromu

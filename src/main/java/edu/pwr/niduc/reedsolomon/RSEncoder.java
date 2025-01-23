@@ -33,7 +33,6 @@ public class RSEncoder {
         int k = messagePolynomial.length;
         int power = n - k;
 
-        log("Encoding message...");
 
         // Przesunięcie wiadomości przez mnożenie przez x^(n-k)
         int[] shiftedMessage = new int[messagePolynomial.length + power];
